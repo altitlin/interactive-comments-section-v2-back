@@ -29,7 +29,6 @@ export class Comment {
   @ApiProperty({
     type: ReplyComment,
     isArray: true,
-    // default: [],
   })
   @Prop({
     type: [{

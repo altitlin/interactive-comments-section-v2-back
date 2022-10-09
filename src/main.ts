@@ -8,7 +8,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('The interactive comments section API Docs')
-    .setVersion('1.0')
+    .setVersion('1.0.0')
     .addTag('comments')
     .build()
 
