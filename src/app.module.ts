@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { ConfigModule } from '@nestjs/config'
 
 import { CommentsModule } from './features/comments'
+import { UsersModule } from './features/users'
 import { getMongoURI } from './utils'
 
 @Module({
@@ -12,6 +13,7 @@ import { getMongoURI } from './utils'
     }),
     MongooseModule.forRoot(getMongoURI()),
     CommentsModule,
+    UsersModule,
   ],
   controllers: [],
   providers: [],

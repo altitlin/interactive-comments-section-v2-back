@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core'
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger'
+import * as compression from 'compression'
+import helmet from 'helmet'
 
+import { corsOptions } from './config/cors'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -18,6 +21,12 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config, options)
   SwaggerModule.setup('api', app, document)
+
+  app.enableCors(corsOptions)
+  app.setGlobalPrefix('/api/v1')
+
+  app.use(compression())
+  app.use(helmet())
 
   await app.listen(process.env.PORT ?? 3000)
 }

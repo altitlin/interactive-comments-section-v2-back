@@ -20,6 +20,7 @@ MONGO_INITDB_DATABASE=<Your mongo db name>
 MONGO_INITDB_HOST=<Your mongo db host>
 MONGO_INITDB_PORT=27017
 NODE_ENV=development
+FRONT_URL=https://localhost:4242
 ````
 
 ### Running a docker container for development
@@ -48,6 +49,7 @@ MONGO_INITDB_ROOT_PASSWORD=<Your mongo db password>
 MONGO_INITDB_DATABASE=<Your mongo db name>
 MONGO_INITDB_HOST=<Your mongo db host>
 NODE_ENV=production
+FRONT_URL=
 ````
 
 ### Running a docker container for production
