@@ -11,6 +11,10 @@ export class CommentsService {
   ) {}
 
   async findAll(): Promise<Comment[]> {
-    return this.commentModel.find().exec()
+    return this.commentModel
+      .find()
+      .populate('user', 'image username')
+      .populate('replies.user')
+      .exec()
   }
 }
