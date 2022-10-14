@@ -13,18 +13,12 @@ const paramsSerializer = (params: Record<string, unknown>): string => {
 
 const getMongoURIDev = () => {
   const {
-    MONGO_INITDB_ROOT_USERNAME,
-    MONGO_INITDB_ROOT_PASSWORD,
     MONGO_INITDB_HOST,
     MONGO_INITDB_PORT,
     MONGO_INITDB_DATABASE,
   } = process.env
 
-  const params: Record<string, unknown> = {
-    authSource: 'admin',
-  }
-
-  return `mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_INITDB_HOST}:${MONGO_INITDB_PORT}/${MONGO_INITDB_DATABASE}${paramsSerializer(params)}`
+  return `mongodb://${MONGO_INITDB_HOST}:${MONGO_INITDB_PORT}/${MONGO_INITDB_DATABASE}`
 }
 
 const getMongoURIProd = () => {
