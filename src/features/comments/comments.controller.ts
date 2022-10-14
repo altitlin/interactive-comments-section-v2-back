@@ -17,9 +17,7 @@ export class CommentsController {
 
   @Get()
   @ApiOperation({ summary: 'Return all the comments of user' })
-  @ApiOkResponse({
-    type: [Comment]
-  })
+  @ApiOkResponse({ type: [ Comment ] })
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiResponse({
     status: 500,
