@@ -1,6 +1,4 @@
-FROM node:16
-
-ARG PORT=3000
+FROM node:16-alpine AS builder
 
 WORKDIR /app
 
@@ -10,8 +8,20 @@ RUN npm ci
 
 COPY --chown=node:node . .
 
-EXPOSE $PORT:$PORT
+RUN npm run build
 
 USER node
 
-CMD [ "npm", "run", "start:dev" ]
+FROM node:16-alpine
+
+WORKDIR /app
+
+COPY --chown=node:node package*.json ./
+
+RUN npm ci
+
+COPY --chown=node:node . .
+
+COPY --chown=node:node --from=builder /app/dist ./dist
+
+CMD [ "npm", "run", "start:prod" ]
