@@ -2,6 +2,7 @@ const paramsSerializer = (params: Record<string, unknown>): string => {
   const PARAMS_SEPARATOR = '&'
 
   return Object.entries(params).reduce((acc, [ key, value ], idx, arr) => {
+    // eslint-disable-next-line no-magic-numbers
     const isLastParam = idx === arr.length - 1
 
     acc += `${key}=${value}${!isLastParam ? PARAMS_SEPARATOR : ''}`.trim()
@@ -20,7 +21,7 @@ const getMongoURIDev = () => {
   } = process.env
 
   const params: Record<string, unknown> = {
-    authSource: 'admin'
+    authSource: 'admin',
   }
 
   return `mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_INITDB_HOST}:${MONGO_INITDB_PORT}/${MONGO_INITDB_DATABASE}${paramsSerializer(params)}`
@@ -43,6 +44,6 @@ const getMongoURIProd = () => {
 }
 
 export const getMongoURI = () => ({
-  'development': getMongoURIDev,
-  'production': getMongoURIProd,
+  development: getMongoURIDev,
+  production: getMongoURIProd,
 })[process.env.NODE_ENV]()

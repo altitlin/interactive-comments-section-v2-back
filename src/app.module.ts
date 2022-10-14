@@ -8,9 +8,7 @@ import { getMongoURI } from './utils'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(getMongoURI()),
     CommentsModule,
     UsersModule,
