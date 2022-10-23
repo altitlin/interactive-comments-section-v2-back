@@ -10,14 +10,20 @@ export class User {
     type: String,
     required: true,
   })
-  @ApiProperty({ type: String })
+  @ApiProperty({
+    type: String,
+    example: '/images/image-ramsesmiron.png',
+  })
   image: string
 
   @Prop({
     type: String,
     required: true,
   })
-  @ApiProperty({ type: String })
+  @ApiProperty({
+    type: String,
+    example: 'ramsesmiron',
+  })
   username: string
 }
 

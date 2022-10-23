@@ -8,8 +8,13 @@ import { getMongoURI } from './utils'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(getMongoURI()),
+    ConfigModule.forRoot({ envFilePath: '.env.local' /*  TODO: should be define automatically */ }),
+    MongooseModule.forRoot(getMongoURI(), {
+      connectionFactory: (connection) => {
+        connection.plugin(require('mongoose-autopopulate'))
+        return connection
+      },
+    }),
     CommentsModule,
     UsersModule,
   ],
