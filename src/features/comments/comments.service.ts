@@ -2,6 +2,7 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 
+import { CreateCommentDto } from './dtos/create-comment.dto'
 import { Comment, CommentDocument } from './schemas/comment.schema'
 
 @Injectable()
@@ -11,10 +12,18 @@ export class CommentsService {
   ) {}
 
   async findAll(): Promise<Comment[]> {
-    return this.commentModel
-      .find()
-      .populate('user', 'image username')
-      .populate('replies.user')
-      .exec()
+    const comments = await this.commentModel.find().exec()
+
+    return comments
+  }
+
+  async create(commentDto: CreateCommentDto): Promise<Comment> {
+    const comment = await this.commentModel.create({
+      ...commentDto,
+      score: 0,
+      replies: [],
+    })
+
+    return comment
   }
 }

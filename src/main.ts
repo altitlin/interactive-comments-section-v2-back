@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core'
+import { ValidationPipe } from '@nestjs/common'
 import {
   SwaggerModule,
   DocumentBuilder,
@@ -13,6 +14,13 @@ import { AppModule } from './app.module'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
+  app.useGlobalPipes(new ValidationPipe())
+  app.enableCors(corsOptions)
+  app.setGlobalPrefix(process.env.API_PREFIX)
+
+  app.use(compression())
+  app.use(helmet())
+
   const config = new DocumentBuilder()
     .setTitle('The interactive comments section API Docs')
     .setVersion('1.0.0')
@@ -24,13 +32,7 @@ async function bootstrap() {
   }
 
   const document = SwaggerModule.createDocument(app, config, options)
-  SwaggerModule.setup('api/v1', app, document)
-
-  app.enableCors(corsOptions)
-  app.setGlobalPrefix('/api/v1')
-
-  app.use(compression())
-  app.use(helmet())
+  SwaggerModule.setup(process.env.API_PREFIX, app, document)
 
   await app.listen(process.env.PORT)
 }
