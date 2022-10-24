@@ -1,10 +1,15 @@
-name: CI interactive comments section
-run-name: ${{ github.actor }} is activating CI
+name: CD interactive comments section
+run-name: ${{ github.actor }} is activating CD
 
 on:
-  pull_request:
+  push:
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      perform_deploy:
+        required: true
+        type: boolean
 
 defaults:
   run:
@@ -71,3 +76,17 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  deploy:
+    environment: production
+    name: Run deploy
+    runs-on: ubuntu-latest
+    needs: ['lint', 'unit-tests', 'build']
+
+    if: ${{ inputs.perform_deploy }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Deploy to production
+        run: echo "🍏 This job's status is ${{ job.status }}."
