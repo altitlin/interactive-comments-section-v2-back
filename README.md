@@ -1,3 +1,4 @@
+[![Code scanning](https://github.com/altitlin/interactive-comments-section-v2-back/actions/workflows/codeql-analysis.yml/badge.svg?branch=dev&event=push)](https://github.com/altitlin/interactive-comments-section-v2-back/actions/workflows/codeql-analysis.yml)
 [![CI interactive comments section](https://github.com/altitlin/interactive-comments-section-v2-back/actions/workflows/ci-ics.yml/badge.svg?branch=dev&event=push)](https://github.com/altitlin/interactive-comments-section-v2-back/actions/workflows/ci-ics.yml)
 
 # Intro
