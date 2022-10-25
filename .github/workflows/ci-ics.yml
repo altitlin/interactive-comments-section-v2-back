@@ -15,9 +15,13 @@ defaults:
     working-directory: ./
 
 jobs:
-  lint:
-    name: Run linter
+  build:
+    name: Build
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.15.0]
 
     steps:
       - name: Check out repository code
@@ -26,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: ${{ matrix.node-version }}
           cache: npm
 
       - name: Install dependencies
@@ -35,42 +39,8 @@ jobs:
       - name: Run eslint
         run: npx lint-staged
 
-  unit-tests:
-    name: Run unit tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.15.0
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
+      - name: Run unit tests
         run: npm run test
 
-  build:
-    name: Run build application
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.15.0
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
+      - name: Run build
         run: npm run build
