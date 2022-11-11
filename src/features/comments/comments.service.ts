@@ -26,4 +26,8 @@ export class CommentsService {
 
     return comment
   }
+
+  async delete(id: string): Promise<void> {
+    await this.commentModel.findByIdAndDelete(id)
+  }
 }
