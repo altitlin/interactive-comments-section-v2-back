@@ -1,8 +1,10 @@
 import {
   Controller,
   Body,
+  Param,
   Get,
-  Post
+  Post,
+  Delete
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -51,5 +53,17 @@ export class CommentsController {
   })
   create(@Body() createCommentDto: CreateCommentDto): Promise<Comment> {
     return this.commentsService.create(createCommentDto)
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a comment for a current user' })
+  @ApiOkResponse()
+  @ApiNotFoundResponse({ description: 'Not Found' })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+  })
+  delete(@Param('id') id: string): Promise<void> {
+    return this.commentsService.delete(id)
   }
 }
