@@ -34,8 +34,8 @@ lerna-debug.log*
 !.vscode/launch.json
 !.vscode/extensions.json
 
-.env
-.env.local
+.env.dev
+.env.prod
 coverage
 node_modules
 dist

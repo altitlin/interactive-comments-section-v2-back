@@ -4,11 +4,11 @@ import { ConfigModule } from '@nestjs/config'
 
 import { CommentsModule } from './features/comments'
 import { UsersModule } from './features/users'
-import { getMongoURI } from './utils'
+import { getMongoURI, getEnvFilePath } from './core/utils'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: '.env.local' /*  TODO: should be define automatically */ }),
+    ConfigModule.forRoot({ envFilePath: getEnvFilePath() }),
     MongooseModule.forRoot(getMongoURI(), {
       connectionFactory: (connection) => {
         connection.plugin(require('mongoose-autopopulate'))
