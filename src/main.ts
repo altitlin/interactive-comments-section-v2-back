@@ -1,14 +1,10 @@
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
-import {
-  SwaggerModule,
-  DocumentBuilder,
-  SwaggerDocumentOptions
-} from '@nestjs/swagger'
 import * as compression from 'compression'
 import helmet from 'helmet'
 
-import { corsOptions } from './config/cors'
+import { corsOptions } from './core/config/cors'
+import { initSwagger } from './core/lib/swagger'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
@@ -21,18 +17,7 @@ async function bootstrap() {
   app.use(compression())
   app.use(helmet())
 
-  const config = new DocumentBuilder()
-    .setTitle('The interactive comments section API Docs')
-    .setVersion('1.0.0')
-    .addTag('comments')
-    .build()
-
-  const options: SwaggerDocumentOptions = {
-    operationIdFactory: (_, methodKey) => methodKey,
-  }
-
-  const document = SwaggerModule.createDocument(app, config, options)
-  SwaggerModule.setup(process.env.API_PREFIX, app, document)
+  initSwagger(app)
 
   await app.listen(process.env.PORT)
 }

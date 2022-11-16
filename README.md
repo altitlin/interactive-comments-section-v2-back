@@ -15,13 +15,13 @@ This is a interactive comments section.
 
 ## Running development mode
 1. Running an ```npm install``` command in the root directory to install all dependencies
-2. Create an ```.env.local``` file in the root directory and add the following in
+2. Create an ```.env.dev``` file in the root directory and add the following in
 ````javascript
 PORT=3000
 MONGO_INITDB_DATABASE=ics
 MONGO_INITDB_HOST=localhost
 MONGO_INITDB_PORT=27017
-NODE_ENV=development
+NODE_ENV=dev
 FRONT_URL=https://localhost:4242
 ````
 3. Running an ```npm run start:dev``` command in the root directory to launch local dev server
@@ -31,14 +31,14 @@ FRONT_URL=https://localhost:4242
 
 ## Running production mode
 1. Create an mongo db atlas account and set up the the network and database access
-2. Create an ```.env``` file in the root directory and add the following in
+2. Create an ```.env.prod``` file in the root directory and add the following in
 ````javascript
 PORT=3000
 MONGO_INITDB_ROOT_USERNAME=<Your mongo db username>
 MONGO_INITDB_ROOT_PASSWORD=<Your mongo db password>
 MONGO_INITDB_DATABASE=<Your mongo db name>
 MONGO_INITDB_HOST=<Your mongo db host>
-NODE_ENV=production
+NODE_ENV=prod
 FRONT_URL=<Your url frontend>
 ````
 2. Running a docker container ```make prod``` in the root directory

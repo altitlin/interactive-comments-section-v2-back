@@ -38,6 +38,6 @@ const getMongoURIProd = () => {
 }
 
 export const getMongoURI = () => ({
-  development: getMongoURIDev,
-  production: getMongoURIProd,
+  dev: getMongoURIDev,
+  prod: getMongoURIProd,
 })[process.env.NODE_ENV]()
