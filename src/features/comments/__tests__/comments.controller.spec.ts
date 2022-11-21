@@ -1,5 +1,7 @@
 import { Test } from '@nestjs/testing'
 
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../../../core/constants'
+
 import { CommentsService } from '../comments.service'
 import { CommentsController } from '../comments.controller'
 
@@ -19,10 +21,6 @@ describe('CommentsController', () => {
 
     commentsController = moduleRef.get<CommentsController>(CommentsController)
     commentsService = moduleRef.get<CommentsService>(CommentsService)
-  })
-
-  afterEach(() => {
-    jest.clearAllMocks()
   })
 
   describe('create', () => {
@@ -45,22 +43,26 @@ describe('CommentsController', () => {
       expect(comment).toEqual(commentStub())
     })
 
-    it('should throw exception if content or user should not be provided', async () => {
-      const expectedMessageException = 'Content or user should be provided'
-
-      await expect(commentsController.create({
+    it('should throw the bad request exception if content or user should not be provided', async () => {
+      const incorrectCreateCommentDto = {
         content: '',
         user: '',
-      })).rejects.toThrowError(expectedMessageException)
+      }
+
+      await expect(commentsController.create(incorrectCreateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidCreateCommentDto)
     })
 
-    it('should throw exception if user id was passed incorrectly', async () => {
-      const expectedMessageException = 'Invalid user id'
-
-      await expect(commentsController.create({
+    it('should throw the bad request exception if user id was passed incorrectly', async () => {
+      const incorrectCreateCommentDto = {
         content: 'content',
         user: '1234',
-      })).rejects.toThrowError(expectedMessageException)
+      }
+
+      await expect(commentsController.create(incorrectCreateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidUserID)
     })
   })
 
@@ -80,6 +82,36 @@ describe('CommentsController', () => {
     })
   })
 
+  describe('update', () => {
+    let comment
+    let updateCommentDto
+
+    beforeEach(async () => {
+      updateCommentDto = {
+        content: commentStub().content,
+        score: commentStub().score,
+        user: commentStub().user,
+      }
+      comment = await commentsController.update(commentStub().id, updateCommentDto)
+    })
+
+    it('should call the comments service', () => {
+      expect(commentsService.update).toHaveBeenCalledWith(commentStub().id, updateCommentDto)
+    })
+
+    it('should update a comment for current user', () => {
+      expect(comment).toEqual(commentStub())
+    })
+
+    it('should throw the not found exception if comment was not found by id', async () => {
+      jest.spyOn(commentsService, 'findOne').mockResolvedValueOnce(null)
+
+      await expect(commentsController.update(commentStub().id, updateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
+    })
+  })
+
   describe('delete', () => {
     beforeEach(async () => {
       await commentsController.delete(commentStub().id)
@@ -89,22 +121,12 @@ describe('CommentsController', () => {
       expect(commentsService.delete).toHaveBeenCalled()
     })
 
-    it('should throw exception if comment id was passed incorrectly', async () => {
-      const expectedMessageException = 'Invalid comment id'
-
-      await expect(commentsController.delete('1234'))
-        .rejects
-        .toThrowError(expectedMessageException)
-    })
-
-    it('should throw exception if comment was not found by id', async () => {
-      jest.spyOn(commentsService, 'findOne').mockResolvedValue(null)
-
-      const expectedMessageException = `Comment not found by id: ${commentStub().id}`
+    it('should throw the not found exception if comment was not found by id', async () => {
+      jest.spyOn(commentsService, 'findOne').mockResolvedValueOnce(null)
 
       await expect(commentsController.delete(commentStub().id))
         .rejects
-        .toThrowError(expectedMessageException)
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
     })
   })
 })

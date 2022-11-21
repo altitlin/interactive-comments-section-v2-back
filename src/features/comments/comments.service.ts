@@ -1,8 +1,9 @@
-import { Model } from 'mongoose'
+import { Model, sanitizeFilter } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 
 import { CreateCommentDto } from './dtos/create-comment.dto'
+import { UpdateCommentDto } from './dtos/update-comment.dto'
 import { Comment, CommentDocument } from './schemas/comment.schema'
 
 @Injectable()
@@ -28,12 +29,20 @@ export class CommentsService {
   }
 
   async findOne(id: string): Promise<Comment> {
-    const comment = await this.commentModel.findById(id)
+    const comment = await this.commentModel.findOne({ _id: { $eq: id } })
+
+    return comment
+  }
+
+  async update(id: string, commentDto: UpdateCommentDto): Promise<Comment> {
+    await this.commentModel.updateOne({ _id: { $eq: id } }, { $set: sanitizeFilter(commentDto) })
+
+    const comment = await this.commentModel.findOne({ _id: { $eq: id } })
 
     return comment
   }
 
   async delete(id: string): Promise<void> {
-    await this.commentModel.deleteOne({ _id: id })
+    await this.commentModel.deleteOne({ _id: { $eq: id } })
   }
 }
