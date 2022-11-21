@@ -25,26 +25,6 @@ describe('CommentsController', () => {
     jest.clearAllMocks()
   })
 
-  it('should be defined', () => {
-    expect(commentsController).toBeDefined()
-  })
-
-  describe('findAll', () => {
-    let comments
-
-    beforeEach(async () => {
-      comments = await commentsController.findAll()
-    })
-
-    it('should call the comments service', () => {
-      expect(commentsService.findAll).toHaveBeenCalled()
-    })
-
-    it('should return an array of comments for current user', async () => {
-      expect(comments).toEqual([ commentStub() ])
-    })
-  })
-
   describe('create', () => {
     let comment
     let createCommentDto
@@ -63,6 +43,68 @@ describe('CommentsController', () => {
 
     it('should create a comment for current user', () => {
       expect(comment).toEqual(commentStub())
+    })
+
+    it('should throw exception if content or user should not be provided', async () => {
+      const expectedMessageException = 'Content or user should be provided'
+
+      await expect(commentsController.create({
+        content: '',
+        user: '',
+      })).rejects.toThrowError(expectedMessageException)
+    })
+
+    it('should throw exception if user id was passed incorrectly', async () => {
+      const expectedMessageException = 'Invalid user id'
+
+      await expect(commentsController.create({
+        content: 'content',
+        user: '1234',
+      })).rejects.toThrowError(expectedMessageException)
+    })
+  })
+
+  describe('findAll', () => {
+    let comments
+
+    beforeEach(async () => {
+      comments = await commentsController.findAll()
+    })
+
+    it('should call the comments service', () => {
+      expect(commentsService.findAll).toHaveBeenCalled()
+    })
+
+    it('should return an array of comments for current user', async () => {
+      expect(comments).toEqual([ commentStub() ])
+    })
+  })
+
+  describe('delete', () => {
+    beforeEach(async () => {
+      await commentsController.delete(commentStub().id)
+    })
+
+    it('should call the comments service', () => {
+      expect(commentsService.delete).toHaveBeenCalled()
+    })
+
+    it('should throw exception if comment id was passed incorrectly', async () => {
+      const expectedMessageException = 'Invalid comment id'
+
+      await expect(commentsController.delete('1234'))
+        .rejects
+        .toThrowError(expectedMessageException)
+    })
+
+    it('should throw exception if comment was not found by id', async () => {
+      jest.spyOn(commentsService, 'findOne').mockResolvedValue(null)
+
+      const expectedMessageException = `Comment not found by id: ${commentStub().id}`
+
+      await expect(commentsController.delete(commentStub().id))
+        .rejects
+        .toThrowError(expectedMessageException)
     })
   })
 })

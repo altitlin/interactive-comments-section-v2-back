@@ -7,7 +7,13 @@ export default async (): Promise<Config> => ({
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: [ 'lcov' ],
-  collectCoverageFrom: [ '**/*.(t|j)s' ],
+  collectCoverageFrom: [
+    'src/features/**/*.ts',
+    'src/core/filters/**/*.ts',
+    'src/core/lib/**/*.ts',
+    'src/core/utils/**/*.ts',
+    '!**/node_modules/**',
+  ],
   testRegex: '.*\\.spec\\.ts$',
   testEnvironment: 'node',
   transform: {
