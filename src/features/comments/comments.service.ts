@@ -11,12 +11,6 @@ export class CommentsService {
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>
   ) {}
 
-  async findAll(): Promise<Comment[]> {
-    const comments = await this.commentModel.find().exec()
-
-    return comments
-  }
-
   async create(commentDto: CreateCommentDto): Promise<Comment> {
     const comment = await this.commentModel.create({
       ...commentDto,
@@ -27,7 +21,19 @@ export class CommentsService {
     return comment
   }
 
+  async findAll(): Promise<Comment[]> {
+    const comments = await this.commentModel.find().exec()
+
+    return comments
+  }
+
+  async findOne(id: string): Promise<Comment> {
+    const comment = await this.commentModel.findById(id)
+
+    return comment
+  }
+
   async delete(id: string): Promise<void> {
-    await this.commentModel.findByIdAndDelete(id)
+    await this.commentModel.deleteOne({ _id: id })
   }
 }

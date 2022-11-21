@@ -1,10 +1,7 @@
 export const commentStub = () => ({
-  id: 'id',
+  id: '6348528912bc342cb3fbc0fe',
   content: 'content',
   score: 0,
-  user: {
-    username: 'username',
-    image: 'image',
-  },
+  user: '634852a212bc342cb3fbc0ff',
   replies: [],
 })

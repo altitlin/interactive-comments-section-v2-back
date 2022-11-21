@@ -1,5 +1,4 @@
 import {
-  IsNotEmpty,
   IsMongoId,
   IsString,
   IsNumber,
@@ -12,7 +11,6 @@ export class BasicComment {
     type: String,
     example: '6348528912bc342cb3fbc0fe',
   })
-  @IsNotEmpty()
   @IsMongoId()
   readonly id: string
 
@@ -20,7 +18,6 @@ export class BasicComment {
     type: String,
     example: 'Just some content',
   })
-  @IsNotEmpty()
   @IsString()
   readonly content: string
 
@@ -28,7 +25,6 @@ export class BasicComment {
     type: Number,
     example: 0,
   })
-  @IsNotEmpty()
   @IsNumber()
   @IsPositive()
   readonly score: number

@@ -6,5 +6,7 @@ export const mockCommentModel = {
   create: jest.fn(),
   save: jest.fn(),
   find: jest.fn(),
+  findById: jest.fn(),
+  deleteOne: jest.fn(),
   exec: jest.fn(),
 }

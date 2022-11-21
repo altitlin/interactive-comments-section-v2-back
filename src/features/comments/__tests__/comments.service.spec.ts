@@ -32,29 +32,6 @@ describe('CommentsService', () => {
     jest.clearAllMocks()
   })
 
-  it('should be defined', () => {
-    expect(commentService).toBeDefined()
-  })
-
-  describe('findAll', () => {
-    let comments
-
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'find').mockReturnValue({
-        exec: jest.fn().mockResolvedValue([ commentStub() ]),
-      } as any)
-      comments = await commentService.findAll()
-    })
-
-    it('should call the "find" method of the comment model', () => {
-      expect(mockCommentModel.find).toHaveBeenCalled()
-    })
-
-    it('should return an array of comments for current user', () => {
-      expect(comments).toEqual([ commentStub() ])
-    })
-  })
-
   describe('create', () => {
     let comment
     let createCommentDto
@@ -79,6 +56,53 @@ describe('CommentsService', () => {
 
     it('should return a created comment for current user', () => {
       expect(comment).toEqual(commentStub())
+    })
+  })
+
+  describe('findAll', () => {
+    let comments
+
+    beforeEach(async () => {
+      jest.spyOn(commentModel, 'find').mockReturnValue({
+        exec: jest.fn().mockResolvedValue([ commentStub() ]),
+      } as any)
+      comments = await commentService.findAll()
+    })
+
+    it('should call the "find" method of the comment model', () => {
+      expect(mockCommentModel.find).toHaveBeenCalled()
+    })
+
+    it('should return an array of comments for current user', () => {
+      expect(comments).toEqual([ commentStub() ])
+    })
+  })
+
+  describe('findOne', () => {
+    let comment
+
+    beforeEach(async () => {
+      jest.spyOn(commentModel, 'findById').mockResolvedValue(commentStub() as never)
+      comment = await commentService.findOne(commentStub().id)
+    })
+
+    it('should call the "findById" method of the comment model', () => {
+      expect(mockCommentModel.findById).toHaveBeenCalled()
+    })
+
+    it('should return the comment for current user', () => {
+      expect(comment).toEqual(commentStub())
+    })
+  })
+
+  describe('delete', () => {
+    beforeEach(async () => {
+      jest.spyOn(commentModel, 'deleteOne').mockResolvedValue(commentStub().id as never)
+      await commentService.delete(commentStub().id)
+    })
+
+    it('should call the "deleteOne" method of the comment model', () => {
+      expect(mockCommentModel.deleteOne).toHaveBeenCalled()
     })
   })
 })
