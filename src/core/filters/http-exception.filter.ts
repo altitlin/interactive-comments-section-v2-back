@@ -7,6 +7,8 @@ import {
   HttpStatus
 } from '@nestjs/common'
 
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../constants'
+
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
@@ -24,7 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       errorMessage = (errorResponse as { error: string }).error || exception.message
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR
-      errorMessage = 'Internal server error'
+      errorMessage = ERROR_INTERNAL_CLASSS_MESSAGES.InternalServerError
     }
 
     const responseBody = {

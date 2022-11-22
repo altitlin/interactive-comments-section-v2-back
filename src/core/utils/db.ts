@@ -1,7 +1,3 @@
-import { Types } from 'mongoose'
-
-const { ObjectId } = Types
-
 const paramsSerializer = (params: Record<string, unknown>): string => {
   const PARAMS_SEPARATOR = '&'
 
@@ -45,12 +41,3 @@ export const getMongoURI = () => ({
   dev: getMongoURIDev,
   prod: getMongoURIProd,
 })[process.env.NODE_ENV]()
-
-export const isValidObjectId = (id: string): boolean => {
-  if (ObjectId.isValid(id)) {
-    if ((String)(new ObjectId(id)) === id) return true
-    return false
-  }
-
-  return false
-}

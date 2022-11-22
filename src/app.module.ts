@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ConfigModule } from '@nestjs/config'
 
+import { getMongoURI, getEnvFilePath } from './core/utils'
 import { CommentsModule } from './features/comments'
 import { UsersModule } from './features/users'
-import { getMongoURI, getEnvFilePath } from './core/utils'
 
 @Module({
   imports: [

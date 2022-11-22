@@ -2,13 +2,13 @@ import {
   Controller,
   Body,
   Param,
-  Get,
   Post,
+  Get,
+  Patch,
   Delete,
   HttpException,
   NotFoundException,
-  BadRequestException,
-  InternalServerErrorException
+  BadRequestException
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -19,11 +19,14 @@ import {
   ApiBadRequestResponse,
   ApiNotFoundResponse
 } from '@nestjs/swagger'
+import { isValidObjectId } from 'mongoose'
 
-import { HttpExceptionResponse } from '../../core/models/http-exception-response.class'
-import { isValidObjectId } from '../../core/utils'
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../../core/constants'
+import { HttpExceptionResponse } from '../../core/models'
+import { ValidationObjectId } from '../../core/pipes'
 
 import { CreateCommentDto } from './dtos/create-comment.dto'
+import { UpdateCommentDto } from './dtos/update-comment.dto'
 import { Comment } from './schemas/comment.schema'
 import { isValidCreateCommentDto } from './comments.helpers'
 import { CommentsService } from './comments.service'
@@ -43,14 +46,14 @@ export class CommentsController {
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async create(@Body() createCommentDto: CreateCommentDto): Promise<Comment | HttpException> {
+  async create(@Body() createCommentDto: CreateCommentDto): Promise<Comment> {
     try {
       if (!isValidCreateCommentDto(createCommentDto)) {
-        throw new BadRequestException('Content or user should be provided')
+        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidCreateCommentDto)
       }
 
       if (!isValidObjectId(createCommentDto.user)) {
-        throw new BadRequestException('Invalid user id')
+        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidUserID)
       }
 
       const comment = await this.commentsService.create(createCommentDto)
@@ -64,20 +67,46 @@ export class CommentsController {
   @Get()
   @ApiOperation({ summary: 'Return all the comments of user' })
   @ApiOkResponse({ type: [ Comment ] })
-  @ApiBadRequestResponse({ description: 'Bad request', type: () => HttpExceptionResponse })
+  @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async findAll(): Promise<Comment[] | HttpException> {
+  async findAll(): Promise<Comment[]> {
     try {
       const comments = await this.commentsService.findAll()
 
       return comments
     } catch (error) {
-      throw new InternalServerErrorException()
+      throw new HttpException(error.message, error.status)
+    }
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a comment for a current user' })
+  @ApiOkResponse({ type: Comment })
+  @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+    type: HttpExceptionResponse,
+  })
+  async update(@Param('id', ValidationObjectId) id: string, @Body() updateCommentDto: UpdateCommentDto): Promise<Comment> {
+    try {
+      const comment = await this.commentsService.findOne(id)
+
+      if (!comment) {
+        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
+      }
+
+      const res = await this.commentsService.update(id, updateCommentDto)
+
+      return res
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
     }
   }
 
@@ -91,16 +120,12 @@ export class CommentsController {
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async delete(@Param('id') id: string): Promise<void> {
+  async delete(@Param('id', ValidationObjectId) id: string): Promise<void> {
     try {
-      if (!isValidObjectId(id)) {
-        throw new BadRequestException('Invalid comment id')
-      }
-
       const comment = await this.commentsService.findOne(id)
 
       if (!comment) {
-        throw new NotFoundException(`Comment not found by id: ${id}`)
+        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
       }
 
       const res = await this.commentsService.delete(id)

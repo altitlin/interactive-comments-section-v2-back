@@ -12,6 +12,7 @@ export default async (): Promise<Config> => ({
     'src/core/filters/**/*.ts',
     'src/core/lib/**/*.ts',
     'src/core/utils/**/*.ts',
+    'src/core/pipes/**/*.ts',
     '!**/node_modules/**',
   ],
   testRegex: '.*\\.spec\\.ts$',
