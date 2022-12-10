@@ -20,6 +20,10 @@ export default async (): Promise<Config> => ({
   transform: {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
+  moduleNameMapper: {
+    '^@features(.*)$': '<rootDir>/src/features$1',
+    '^@core(.*)$': '<rootDir>/src/core$1',
+  },
   moduleFileExtensions: [
     'js',
     'json',

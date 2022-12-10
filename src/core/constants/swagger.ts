@@ -1,3 +1,5 @@
 export enum TagsNamesSwagger {
-  COMMENTS = 'comments'
+  COMMENTS = 'comments',
+  USERS = 'users',
+  AUTH = 'auth'
 }

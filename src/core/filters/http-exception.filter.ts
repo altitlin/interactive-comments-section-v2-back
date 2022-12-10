@@ -7,7 +7,7 @@ import {
   HttpStatus
 } from '@nestjs/common'
 
-import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../constants'
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {

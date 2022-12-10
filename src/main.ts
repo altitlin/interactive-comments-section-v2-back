@@ -3,9 +3,10 @@ import { ValidationPipe } from '@nestjs/common'
 import * as compression from 'compression'
 import helmet from 'helmet'
 
-import { corsOptions } from './core/config'
-import { HttpExceptionFilter } from './core/filters'
-import { initSwagger } from './core/lib'
+import { corsOptions } from '@core/config'
+import { HttpExceptionFilter } from '@core/filters'
+import { initSwagger } from '@core/lib'
+
 import { AppModule } from './app.module'
 
 async function bootstrap() {

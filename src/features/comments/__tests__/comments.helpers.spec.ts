@@ -4,6 +4,11 @@ import { isValidCreateCommentDto } from '../comments.helpers'
 import { commentStub } from './comment.stub'
 
 describe('Comments helpers', () => {
+  afterAll(() => {
+    jest.resetAllMocks()
+    jest.clearAllMocks()
+  })
+
   describe('isValidCreateCommentDto', () => {
     it('should return "false" if the user/content property of the create comment dto was not passed', () => {
       expect(isValidCreateCommentDto({ user: '', content: '' })).toBeFalsy()
