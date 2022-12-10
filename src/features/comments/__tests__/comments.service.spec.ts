@@ -28,6 +28,11 @@ describe('CommentsService', () => {
     commentModel = moduleRef.get<Model<CommentDocument>>(modelToken)
   })
 
+  afterAll(() => {
+    jest.resetAllMocks()
+    jest.clearAllMocks()
+  })
+
   describe('create', () => {
     let comment
     let createCommentDto

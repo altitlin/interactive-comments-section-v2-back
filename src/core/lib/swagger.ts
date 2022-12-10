@@ -5,13 +5,15 @@ import {
   SwaggerDocumentOptions
 } from '@nestjs/swagger'
 
-import { TagsNamesSwagger } from '../constants'
+import { TagsNamesSwagger } from '@core/constants'
 
 export const initSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()
     .setTitle('The interactive comments section API Docs')
     .setVersion('1.0.0')
     .addTag(TagsNamesSwagger.COMMENTS)
+    .addTag(TagsNamesSwagger.USERS)
+    .addTag(TagsNamesSwagger.AUTH)
     .build()
 
   const options: SwaggerDocumentOptions = {

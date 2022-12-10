@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing'
 
-import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../../../core/constants'
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
 
 import { CommentsService } from '../comments.service'
 import { CommentsController } from '../comments.controller'
@@ -21,6 +21,11 @@ describe('CommentsController', () => {
 
     commentsController = moduleRef.get<CommentsController>(CommentsController)
     commentsService = moduleRef.get<CommentsService>(CommentsService)
+  })
+
+  afterAll(() => {
+    jest.resetAllMocks()
+    jest.clearAllMocks()
   })
 
   describe('create', () => {

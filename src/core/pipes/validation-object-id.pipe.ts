@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 import { isValidObjectId } from 'mongoose'
 
-import { ERROR_INTERNAL_CLASSS_MESSAGES } from '../constants'
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
 
 @Injectable()
 export class ValidationObjectId implements PipeTransform {

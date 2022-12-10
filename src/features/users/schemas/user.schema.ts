@@ -19,6 +19,7 @@ export class User {
   @Prop({
     type: String,
     required: true,
+    unique: true,
   })
   @ApiProperty({
     type: String,
