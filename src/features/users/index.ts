@@ -1,1 +1,5 @@
+export { CreateUserDto } from './dtos/create-user.dto'
 export { UsersModule } from './users.module'
+export { UsersService } from './users.service'
+export { User } from './schemas/user.schema'
+export { GetUser } from './decorators/user.decorator'

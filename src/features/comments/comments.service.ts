@@ -1,10 +1,18 @@
-import { Model, sanitizeFilter } from 'mongoose'
-import { Injectable } from '@nestjs/common'
+import { Model, sanitizeFilter, isValidObjectId } from 'mongoose'
+import {
+  Injectable,
+  HttpException,
+  NotFoundException,
+  BadRequestException
+} from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
 
 import { CreateCommentDto } from './dtos/create-comment.dto'
 import { UpdateCommentDto } from './dtos/update-comment.dto'
 import { Comment, CommentDocument } from './schemas/comment.schema'
+import { isValidCreateCommentDto } from './comments.helpers'
 
 @Injectable()
 export class CommentsService {
@@ -13,36 +21,80 @@ export class CommentsService {
   ) {}
 
   async create(commentDto: CreateCommentDto): Promise<Comment> {
-    const comment = await this.commentModel.create({
-      ...commentDto,
-      score: 0,
-      replies: [],
-    })
+    try {
+      if (!isValidCreateCommentDto(commentDto)) {
+        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidCreateCommentDto)
+      }
 
-    return comment
+      if (!isValidObjectId(commentDto.user)) {
+        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidUserID)
+      }
+
+      const comment = await this.commentModel.create({
+        ...commentDto,
+        score: 0,
+        replies: [],
+      })
+
+      return comment
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
+    }
   }
 
   async findAll(): Promise<Comment[]> {
-    const comments = await this.commentModel.find().exec()
+    try {
+      const comments = await this.commentModel.find()
 
-    return comments
+      return comments
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
+    }
   }
 
   async findOne(id: string): Promise<Comment> {
-    const comment = await this.commentModel.findOne({ _id: { $eq: id } })
+    try {
+      const comment = await this.commentModel.findOne({ _id: { $eq: id } })
 
-    return comment
+      if (!comment) {
+        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
+      }
+
+      return comment
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
+    }
   }
 
   async update(id: string, commentDto: UpdateCommentDto): Promise<Comment> {
-    await this.commentModel.updateOne({ _id: { $eq: id } }, { $set: sanitizeFilter(commentDto) })
+    try {
+      const canditate = await this.findOne(id)
 
-    const comment = await this.commentModel.findOne({ _id: { $eq: id } })
+      if (!canditate) {
+        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
+      }
 
-    return comment
+      await this.commentModel.updateOne({ _id: { $eq: id } }, { $set: sanitizeFilter(commentDto) })
+
+      const updatedComment = await this.findOne(id)
+
+      return updatedComment
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
+    }
   }
 
   async delete(id: string): Promise<void> {
-    await this.commentModel.deleteOne({ _id: { $eq: id } })
+    try {
+      const isCommentExists = await this.findOne(id)
+
+      if (!isCommentExists) {
+        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
+      }
+
+      await this.commentModel.deleteOne({ _id: { $eq: id } })
+    } catch (error) {
+      throw new HttpException(error.message, error.status)
+    }
   }
 }

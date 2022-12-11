@@ -6,33 +6,34 @@ import {
   Get,
   Patch,
   Delete,
-  HttpException,
-  NotFoundException,
-  BadRequestException
+  UseGuards
 } from '@nestjs/common'
 import {
+  ApiBearerAuth,
   ApiTags,
   ApiOperation,
   ApiOkResponse,
   ApiCreatedResponse,
   ApiResponse,
   ApiBadRequestResponse,
-  ApiNotFoundResponse
+  ApiNotFoundResponse,
+  ApiUnauthorizedResponse
 } from '@nestjs/swagger'
-import { isValidObjectId } from 'mongoose'
 
-import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
+import { TagsNamesSwagger } from '@core/constants'
 import { HttpExceptionResponse } from '@core/models'
 import { ValidationObjectId } from '@core/pipes'
+import { AccessTokenGuard } from '@core/guards'
 
 import { CreateCommentDto } from './dtos/create-comment.dto'
 import { UpdateCommentDto } from './dtos/update-comment.dto'
 import { Comment } from './schemas/comment.schema'
-import { isValidCreateCommentDto } from './comments.helpers'
 import { CommentsService } from './comments.service'
 
-@ApiTags('comments')
-@Controller('comments')
+@ApiBearerAuth()
+@ApiTags(TagsNamesSwagger.COMMENTS)
+@UseGuards(AccessTokenGuard)
+@Controller(TagsNamesSwagger.COMMENTS)
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
@@ -40,6 +41,7 @@ export class CommentsController {
   @ApiOperation({ summary: 'Create a new comment for a current user' })
   @ApiCreatedResponse({ type: Comment })
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
@@ -47,27 +49,16 @@ export class CommentsController {
     type: HttpExceptionResponse,
   })
   async create(@Body() createCommentDto: CreateCommentDto): Promise<Comment> {
-    try {
-      if (!isValidCreateCommentDto(createCommentDto)) {
-        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidCreateCommentDto)
-      }
+    const comment = await this.commentsService.create(createCommentDto)
 
-      if (!isValidObjectId(createCommentDto.user)) {
-        throw new BadRequestException(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidUserID)
-      }
-
-      const comment = await this.commentsService.create(createCommentDto)
-
-      return comment
-    } catch (error) {
-      throw new HttpException(error.message, error.status)
-    }
+    return comment
   }
 
   @Get()
   @ApiOperation({ summary: 'Return all the comments of user' })
   @ApiOkResponse({ type: [ Comment ] })
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
@@ -75,19 +66,16 @@ export class CommentsController {
     type: HttpExceptionResponse,
   })
   async findAll(): Promise<Comment[]> {
-    try {
-      const comments = await this.commentsService.findAll()
+    const comments = await this.commentsService.findAll()
 
-      return comments
-    } catch (error) {
-      throw new HttpException(error.message, error.status)
-    }
+    return comments
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a comment for a current user' })
   @ApiOkResponse({ type: Comment })
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
@@ -95,25 +83,16 @@ export class CommentsController {
     type: HttpExceptionResponse,
   })
   async update(@Param('id', ValidationObjectId) id: string, @Body() updateCommentDto: UpdateCommentDto): Promise<Comment> {
-    try {
-      const comment = await this.commentsService.findOne(id)
+    const comment = await this.commentsService.update(id, updateCommentDto)
 
-      if (!comment) {
-        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
-      }
-
-      const res = await this.commentsService.update(id, updateCommentDto)
-
-      return res
-    } catch (error) {
-      throw new HttpException(error.message, error.status)
-    }
+    return comment
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a comment for a current user' })
   @ApiOkResponse()
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
@@ -121,18 +100,6 @@ export class CommentsController {
     type: HttpExceptionResponse,
   })
   async delete(@Param('id', ValidationObjectId) id: string): Promise<void> {
-    try {
-      const comment = await this.commentsService.findOne(id)
-
-      if (!comment) {
-        throw new NotFoundException(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
-      }
-
-      const res = await this.commentsService.delete(id)
-
-      return res
-    } catch (error) {
-      throw new HttpException(error.message, error.status)
-    }
+    await this.commentsService.delete(id)
   }
 }

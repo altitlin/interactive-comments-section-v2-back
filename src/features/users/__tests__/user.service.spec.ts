@@ -2,8 +2,11 @@ import { getModelToken } from '@nestjs/mongoose'
 import { Test } from '@nestjs/testing'
 import { Model, sanitizeFilter } from 'mongoose'
 
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
+
 import { mockUserModel } from '../__mocks__/user.model'
 import { UserDocument } from '../schemas/user.schema'
+import { UpdateUserDto } from '../dtos/update-user.dto'
 import { UsersService } from '../users.service'
 
 import { userStub } from './user.stub'
@@ -31,105 +34,105 @@ describe('UsersService', () => {
   afterAll(() => {
     jest.resetAllMocks()
     jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   describe('create', () => {
-    let user
-    let userCommentDto
-
-    beforeEach(async () => {
+    it('should return a created user', async () => {
+      jest.spyOn(userService, 'findByUsername').mockResolvedValueOnce(null)
       jest.spyOn(userModel, 'create').mockResolvedValueOnce(userStub() as never)
-      userCommentDto = {
-        image: userStub().image,
+
+      const createUserDto = {
         username: userStub().username,
         password: userStub().password,
+        refreshToken: userStub().refreshToken,
       }
-      user = await userService.create(userCommentDto)
-    })
 
-    it('should call the "create" method of the user model', () => {
+      const user = await userService.create(createUserDto)
+      const userCommentDto = {
+        ...createUserDto,
+        image: userStub().image,
+      }
+
+      expect(user).toEqual(userStub())
       expect(mockUserModel.create).toHaveBeenCalled()
       expect(mockUserModel.create).toHaveBeenCalledWith(userCommentDto)
-    })
-
-    it('should return a created user', () => {
-      expect(user).toEqual(userStub())
     })
   })
 
   describe('findOne', () => {
-    let user
-
-    beforeEach(async () => {
+    it('should return an existing user by id', async () => {
       jest.spyOn(userModel, 'findOne').mockResolvedValueOnce(userStub() as never)
-      user = await userService.findOne(userStub().id)
-    })
 
-    it('should call the "findOne" method of the user model', () => {
+      const user = await userService.findOne(userStub().id)
+
+      expect(user).toEqual(userStub())
       expect(mockUserModel.findOne).toHaveBeenCalled()
       expect(mockUserModel.findOne)
         .toHaveBeenCalledWith({ _id: { $eq: userStub().id } })
     })
-
-    it('should return user', () => {
-      expect(user).toEqual(userStub())
-    })
   })
 
-  describe('', () => {
-    let user
-
-    beforeEach(async () => {
+  describe('findByUsername', () => {
+    it('should return an existing user by username', async () => {
       jest.spyOn(userModel, 'findOne').mockResolvedValueOnce(userStub() as never)
-      user = await userService.findByUsername(userStub().username)
-    })
 
-    it('should call the "findOne" method of the user model', () => {
+      const user = await userService.findByUsername(userStub().username)
+
+      expect(user).toEqual(userStub())
       expect(mockUserModel.findOne).toHaveBeenCalled()
       expect(mockUserModel.findOne)
         .toHaveBeenCalledWith({ username: { $eq: userStub().username } })
     })
-
-    it('should return user by username', () => {
-      expect(user).toEqual(userStub())
-    })
   })
 
   describe('update', () => {
-    let user
-    let updateUsertDto
+    it('should throw the bad request exception if the user does not exist with the passing id', async () => {
+      jest.spyOn(userService, 'findOne').mockResolvedValueOnce(null)
 
-    beforeEach(async () => {
-      jest.spyOn(userModel, 'updateOne').mockResolvedValueOnce({} as never)
-      jest.spyOn(userModel, 'findOne').mockResolvedValueOnce(userStub() as never)
-      updateUsertDto = {
-        image: userStub().image,
-        username: userStub().username,
-      }
-      user = await userService.update(userStub().id, updateUsertDto)
+      const { id, ...rest } = userStub()
+      const updateUserDto = { id, ...rest } as unknown as UpdateUserDto
+
+      await expect(userService.update(id, updateUserDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundUser)
     })
 
-    it('should call the "updateOne" method of the user model', () => {
+    it('should return the updated user', async () => {
+      jest.spyOn(userService, 'findOne')
+        .mockResolvedValueOnce(userStub())
+        .mockResolvedValueOnce(userStub())
+      jest.spyOn(userModel, 'updateOne').mockResolvedValueOnce(userStub() as never)
+
+      const { id, ...rest } = userStub()
+      const updateUserDto = { id, ...rest } as unknown as UpdateUserDto
+      const user = await userService.update(id, updateUserDto)
+
+      expect(user).toEqual(userStub())
       expect(mockUserModel.updateOne).toHaveBeenCalled()
       expect(mockUserModel.updateOne)
         .toHaveBeenCalledWith(
           { _id: { $eq: userStub().id } },
-          { $set: sanitizeFilter(updateUsertDto) }
+          { $set: sanitizeFilter(updateUserDto) }
         )
-    })
-
-    it('should return the updated user', () => {
-      expect(user).toEqual(userStub())
     })
   })
 
   describe('delete', () => {
-    beforeEach(async () => {
-      jest.spyOn(userModel, 'deleteOne').mockResolvedValueOnce(userStub().id as never)
-      await userService.delete(userStub().id)
+    it('should throw the bad request exception if the user does not exist with the passing id', async () => {
+      jest.spyOn(userService, 'findOne').mockResolvedValueOnce(null)
+
+      await expect(userService.delete(userStub().id))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundUser)
     })
 
-    it('should call the "deleteOne" method of the user model', () => {
+    it('should delete an existing user by id', async () => {
+      jest.spyOn(userService, 'findOne').mockResolvedValueOnce(userStub())
+      jest.spyOn(userModel, 'deleteOne').mockResolvedValueOnce(userStub().id as never)
+
+      await userService.delete(userStub().id)
+
       expect(mockUserModel.deleteOne).toHaveBeenCalled()
       expect(mockUserModel.deleteOne)
       .toHaveBeenCalledWith({ _id: { $eq: userStub().id } })

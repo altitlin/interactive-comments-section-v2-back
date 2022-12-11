@@ -9,6 +9,7 @@ import { TagsNamesSwagger } from '@core/constants'
 
 export const initSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()
+    .addBearerAuth()
     .setTitle('The interactive comments section API Docs')
     .setVersion('1.0.0')
     .addTag(TagsNamesSwagger.COMMENTS)

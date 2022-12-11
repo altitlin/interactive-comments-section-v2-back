@@ -1,11 +1,8 @@
 import {
   Controller,
+  Body,
   Post,
   Get,
-  Patch,
-  Delete,
-  Body,
-  Param,
   UseGuards
 } from '@nestjs/common'
 import {
@@ -17,45 +14,61 @@ import {
   ApiCreatedResponse,
   ApiBadRequestResponse,
   ApiNotFoundResponse,
+  ApiForbiddenResponse,
   ApiUnauthorizedResponse
 } from '@nestjs/swagger'
 
 import { HttpExceptionResponse } from '@core/models'
 import { TagsNamesSwagger } from '@core/constants'
-import { ValidationObjectId } from '@core/pipes'
-import { AccessTokenGuard } from '@core/guards'
+import { AccessTokenGuard, RefreshTokenGuard } from '@core/guards'
+import { CreateUserDto, User, GetUser } from '@features/users'
 
-import { CreateUserDto } from './dtos/create-user.dto'
-import { UpdateUserDto } from './dtos/update-user.dto'
-import { User } from './schemas/user.schema'
-import { UsersService } from './users.service'
+import { AuthDto } from './dtos/auth.dto'
+import { AuthService } from './auth.service'
 
 @ApiBearerAuth()
-@ApiTags(TagsNamesSwagger.USERS)
-@UseGuards(AccessTokenGuard)
-@Controller(TagsNamesSwagger.USERS)
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+@ApiTags(TagsNamesSwagger.AUTH)
+@Controller(TagsNamesSwagger.AUTH)
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiCreatedResponse({ type: User })
+  @Post('signup')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiCreatedResponse()
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
+  @ApiForbiddenResponse({ description: 'Forbidden', type: HttpExceptionResponse })
   @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
   @ApiResponse({
     status: 500,
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    const user = await this.usersService.create(createUserDto)
+  async signUp(@Body() createUserDto: CreateUserDto) {
+    const tokens = await this.authService.signUp(createUserDto)
 
-    return user
+    return tokens
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Return current user by id' })
+  @Post('signin')
+  @ApiOperation({ summary: 'Login an exising user' })
+  @ApiOkResponse()
+  @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
+  @ApiForbiddenResponse({ description: 'Forbidden', type: HttpExceptionResponse })
+  @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal Server Error',
+    type: HttpExceptionResponse,
+  })
+  async signIn(@Body() authDto: AuthDto) {
+    const tokens = await this.authService.signIn(authDto)
+
+    return tokens
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @Get('logout')
+  @ApiOperation({ summary: 'Logout an exising user' })
   @ApiOkResponse({ type: User })
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
   @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
@@ -65,31 +78,15 @@ export class UsersController {
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async findOne(@Param('id', ValidationObjectId) id: string): Promise<User> {
-    const user = await this.usersService.findOne(id)
+  async logout(@GetUser('sub') sub: string) {
+    const user = await this.authService.logout(sub)
 
     return user
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update user' })
-  @ApiOkResponse({ type: User })
-  @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
-  @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
-  @ApiNotFoundResponse({ description: 'Not Found', type: HttpExceptionResponse })
-  @ApiResponse({
-    status: 500,
-    description: 'Internal Server Error',
-    type: HttpExceptionResponse,
-  })
-  async update(@Param('id', ValidationObjectId) id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.usersService.update(id, updateUserDto)
-
-    return user
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete user' })
+  @UseGuards(RefreshTokenGuard)
+  @Get('refresh')
+  @ApiOperation({ summary: 'Refresh token for an existing user' })
   @ApiOkResponse()
   @ApiBadRequestResponse({ description: 'Bad request', type: HttpExceptionResponse })
   @ApiUnauthorizedResponse({ description: 'Unauthorized', type: HttpExceptionResponse })
@@ -99,7 +96,9 @@ export class UsersController {
     description: 'Internal Server Error',
     type: HttpExceptionResponse,
   })
-  async delete(@Param('id', ValidationObjectId) id: string): Promise<void> {
-    await this.usersService.delete(id)
+  async refreshTokens(@GetUser('sub') sub: string, @GetUser('refreshToken') refreshToken: string) {
+    const tokens = await this.authService.refreshTokens(sub, refreshToken)
+
+    return tokens
   }
 }

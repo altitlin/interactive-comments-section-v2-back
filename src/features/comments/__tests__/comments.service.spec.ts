@@ -2,7 +2,10 @@ import { getModelToken } from '@nestjs/mongoose'
 import { Test } from '@nestjs/testing'
 import { Model, sanitizeFilter } from 'mongoose'
 
+import { ERROR_INTERNAL_CLASSS_MESSAGES } from '@core/constants'
+
 import { mockCommentModel } from '../__mocks__/comment.model'
+import { UpdateCommentDto } from '../dtos/update-comment.dto'
 import { CommentDocument } from '../schemas/comment.schema'
 import { CommentsService } from '../comments.service'
 
@@ -31,22 +34,40 @@ describe('CommentsService', () => {
   afterAll(() => {
     jest.resetAllMocks()
     jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   describe('create', () => {
-    let comment
-    let createCommentDto
-
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'create').mockResolvedValueOnce(commentStub() as never)
-      createCommentDto = {
-        content: commentStub().content,
-        user: commentStub().user,
+    it('should throw the bad request exception if content or user should not be provided', async () => {
+      const invalidCreateCommentDto = {
+        content: '',
+        user: '',
       }
-      comment = await commentService.create(createCommentDto)
+
+      await expect(commentService.create(invalidCreateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidCreateCommentDto)
     })
 
-    it('should call the "create" method of the comment model', () => {
+    it('should throw the bad request exception if id of the user was passed incorrectly', async () => {
+      const invalidCreateCommentDto = {
+        content: 'content',
+        user: '42',
+      }
+
+      await expect(commentService.create(invalidCreateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.InvalidUserID)
+    })
+
+    it('should return a created comment for current user', async () => {
+      jest.spyOn(commentModel, 'create').mockResolvedValueOnce(commentStub() as never)
+
+      const { content, user } = commentStub()
+      const createCommentDto = { content, user }
+      const comment = await commentService.create(createCommentDto)
+
+      expect(comment).toEqual(commentStub())
       expect(mockCommentModel.create).toHaveBeenCalled()
       expect(mockCommentModel.create).toHaveBeenCalledWith({
         ...createCommentDto,
@@ -54,67 +75,61 @@ describe('CommentsService', () => {
         replies: [],
       })
     })
-
-    it('should return a created comment for current user', () => {
-      expect(comment).toEqual(commentStub())
-    })
   })
 
   describe('findAll', () => {
-    let comments
+    it('should return an array of comments for current user', async () => {
+      jest.spyOn(commentModel, 'find').mockResolvedValue([ commentStub() ])
 
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'find').mockReturnValueOnce({
-        exec: jest.fn().mockResolvedValue([ commentStub() ]),
-      } as any)
-      comments = await commentService.findAll()
-    })
+      const comments = await commentService.findAll()
 
-    it('should call the "find" method of the comment model', () => {
-      expect(mockCommentModel.find).toHaveBeenCalled()
-    })
-
-    it('should return an array of comments for current user', () => {
       expect(comments).toEqual([ commentStub() ])
+      expect(mockCommentModel.find).toHaveBeenCalled()
     })
   })
 
   describe('findOne', () => {
-    let comment
-
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'findOne').mockResolvedValueOnce(commentStub() as never)
-      comment = await commentService.findOne(commentStub().id)
+    it('should throw the bad request exception if the comment does not exist with the passing id', async () => {
+      await expect(commentService.findOne(commentStub().id))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
     })
 
-    it('should call the "findOne" method of the comment model', () => {
+    it('should return an exising comment by id for current user', async () => {
+      jest.spyOn(commentModel, 'findOne').mockResolvedValueOnce(commentStub() as never)
+
+      const comment = await commentService.findOne(commentStub().id)
+
+      expect(comment).toEqual(commentStub())
       expect(mockCommentModel.findOne).toHaveBeenCalled()
       expect(mockCommentModel.findOne)
         .toHaveBeenCalledWith({ _id: { $eq: commentStub().id } })
     })
-
-    it('should return the comment for current user', () => {
-      expect(comment).toEqual(commentStub())
-    })
   })
 
   describe('update', () => {
-    let comment
-    let updateCommentDto
+    it('should throw the bad request exception if the comment does not exist with the passing id', async () => {
+      jest.spyOn(commentService, 'findOne').mockResolvedValueOnce(null)
 
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'updateOne').mockResolvedValueOnce({} as never)
-      jest.spyOn(commentModel, 'findOne').mockResolvedValueOnce(commentStub() as never)
-      updateCommentDto = {
-        content: commentStub().content,
-        user: commentStub().user,
-        score: commentStub().score,
-        replies: commentStub().replies,
-      }
-      comment = await commentService.update(commentStub().id, updateCommentDto)
+      const { id, ...rest } = commentStub()
+      const updateCommentDto = { id, ...rest } as unknown as UpdateCommentDto
+
+      await expect(commentService.update(id, updateCommentDto))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
     })
 
-    it('should call the "updateOne" method of the comment model', () => {
+    it('should update an exising comment for current user', async () => {
+      jest.spyOn(commentService, 'findOne')
+        .mockResolvedValueOnce(commentStub() as never)
+        .mockResolvedValueOnce(commentStub() as never)
+      jest.spyOn(commentModel, 'updateOne').mockResolvedValueOnce(commentStub() as never)
+
+      const { id, ...rest } = commentStub()
+      const updateCommentDto = { id, ...rest } as unknown as UpdateCommentDto
+      const comment = await commentService.update(id, updateCommentDto)
+
+      expect(comment).toEqual(commentStub())
       expect(mockCommentModel.updateOne).toHaveBeenCalled()
       expect(mockCommentModel.updateOne)
         .toHaveBeenCalledWith(
@@ -122,19 +137,23 @@ describe('CommentsService', () => {
           { $set: sanitizeFilter(updateCommentDto) }
         )
     })
-
-    it('should return the updated comment for current user', () => {
-      expect(comment).toEqual(commentStub())
-    })
   })
 
   describe('delete', () => {
-    beforeEach(async () => {
-      jest.spyOn(commentModel, 'deleteOne').mockResolvedValueOnce(commentStub().id as never)
-      await commentService.delete(commentStub().id)
+    it('should throw the bad request exception if the comment does not exist with the passing id', async () => {
+      jest.spyOn(commentService, 'findOne').mockResolvedValueOnce(null)
+
+      await expect(commentService.delete(commentStub().id))
+        .rejects
+        .toThrowError(ERROR_INTERNAL_CLASSS_MESSAGES.NotFoundComment)
     })
 
-    it('should call the "deleteOne" method of the comment model', () => {
+    it('should delete an exising comment by id', async () => {
+      jest.spyOn(commentService, 'findOne').mockResolvedValueOnce(commentStub() as never)
+      jest.spyOn(commentModel, 'deleteOne').mockResolvedValueOnce(commentStub().id as never)
+
+      await commentService.delete(commentStub().id)
+
       expect(mockCommentModel.deleteOne).toHaveBeenCalled()
       expect(mockCommentModel.deleteOne)
       .toHaveBeenCalledWith({ _id: { $eq: commentStub().id } })
