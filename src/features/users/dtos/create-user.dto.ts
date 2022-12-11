@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, Length } from 'class-validator'
+import {
+  IsString,
+  IsNotEmpty,
+  Length,
+  IsOptional
+} from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 import { PASSWORD } from '../users.constants'
@@ -20,4 +25,13 @@ export class CreateUserDto {
   @IsNotEmpty()
   @Length(PASSWORD.minLength, PASSWORD.maxLength)
   readonly password: string
+
+  @ApiProperty({
+    type: String,
+    example: 'refreshToken',
+  })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly refreshToken?: string
 }
